@@ -74,8 +74,9 @@ Route::middleware('IsLogin')->group(function(){
         Route::get('/edit/{id}', [LateController::class, 'edit'])->name('edit');
         Route::patch('/update/{id}', [LateController::class, 'update'])->name('update');
         Route::delete('/delete/{id}', [LateController::class, 'delete'])->name('delete');
+        Route::get('/show/{id}', [LateController::class, 'show'])->name('show');
+        Route::get('/print/{student_id}', [LateController::class, 'print'])->name('print');
     });
-
 
     Route::get('logout', [UserController::class, 'logout'])->name('logout');
 });

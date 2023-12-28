@@ -90,15 +90,20 @@
                     @php
                         $no = 1;
                     @endphp
-                    {{-- @foreach ($rayons as $rayon) --}}
+                    @foreach ($rekap as $late)
                     <tr>
                         <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td>{{$late->students->nis}}</td>
+                        <td>{{ $late->students->name}}</td>
+                        <td>{{ $late->total }}</td>
+                        <td><a href="{{ route('keterlambatan.show', $late['student_id']) }}" class="btn btn-primary me-2">show</a>
+                        @if ($late->total > 2)    
+                        <a href="{{ route('keterlambatan.print', ['id' => $late->student_id]) }}" class="btn btn-primary me-2">Print Surat Pernyataan</a>                        
+                        @endif
+                    </td>
                         <td class="d-flex"> </td>
                     </tr>
-                    {{-- @endforeach --}}
+                     @endforeach
                 </tbody>
             </table>
         </div>

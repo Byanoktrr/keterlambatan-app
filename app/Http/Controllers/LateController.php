@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\late;
 use Illuminate\Http\Request;
 use App\Models\students;
-
+use PDF;
 class LateController extends Controller
 {
     /**
@@ -15,7 +15,10 @@ class LateController extends Controller
     {   
         // $students = students::all();
         $lates = late::with('students')->orderBy('student_id')->get();
-        return view('keterlambatan.index', compact('lates'));
+        $rekap = late::selectRaw('student_id, count(*) as total')
+                ->groupBy('student_id')
+                ->get();
+        return view('keterlambatan.index', compact('lates' , 'rekap'));
     }
 
     public function students(){
@@ -27,7 +30,7 @@ class LateController extends Controller
      */
     public function create()
     {
-        $students = students::all();
+        $students = Students::all();
         return view('keterlambatan.create', compact('students'));
     }
 
@@ -60,9 +63,14 @@ class LateController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(late $late)
+    public function show($id)
     {
-        //
+        $student = Students::findOrFail($id);
+
+        $lates = late::where('student_id', $id)->get();
+        
+        return view('keterlambatan.show', compact('lates', 'student'));
+
     }
 
     /**
@@ -71,9 +79,10 @@ class LateController extends Controller
     public function edit(late $late, $id)
     {
         $lates = late::where('id', $id)->first();
-        $students = students::all();
+        $students = Students::all();
         return view('keterlambatan.edit', compact('lates', 'students'));
     }
+    
 
     /**
      * Update the specified resource in storage.
@@ -108,5 +117,16 @@ class LateController extends Controller
 
 
         return redirect()->back()->with('deleted', 'Berhasil menghapus obat!');
+    }
+    public function print($id)
+    {
+        $student = students::find($id);
+        $late = Late::with('students')->where('student_id', $id)->first();
+        $rekap = Late::selectRaw('student_id, count(*) as total')
+                ->where('student_id', $id)
+                ->groupBy('student_id')
+                ->get();
+        $pdf = PDF::loadView('keterlambatan.export', compact('late', 'rekap', 'student'));
+        return $pdf->download($student->name . '_surat_pernyataan.pdf');
     }
 }
