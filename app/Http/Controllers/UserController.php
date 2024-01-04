@@ -4,6 +4,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\rayon;
+use App\Models\students;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -36,6 +38,24 @@ class UserController extends Controller
             $users = User::orderBy('name', 'ASC')->simplePaginate(5);
         }
         return view('dashboard.user.index',compact('users')) ;
+    }
+
+    public function indexSiswa()
+    {      
+        $userIdLogin = Auth::id();
+        $rayonIdLogin = rayon::where('user_id', $userIdLogin)->value('id');
+        $rayon = rayon::where('user_id', $userIdLogin)->get();
+        $totalStudents = students::where('rayon_id', $rayonIdLogin)->count();
+        $totalLates = students::where('rayon_id', $rayonIdLogin)->with('lates')->get()->sum(function ($student) {
+            return $student->lates->count();
+        });
+        $todayLates = students::where('rayon_id', $rayonIdLogin)
+            ->whereHas('lates', function ($query) {
+                $query->whereDate('created_at', now()->toDateString());
+            })
+            ->count();
+
+        return view('index', compact('totalStudents', 'totalLates', 'todayLates', 'rayonIdLogin', 'rayon'));
     }
 
     public function create()

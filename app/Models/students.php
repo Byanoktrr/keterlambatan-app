@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use app\models\rayon;
-use app\models\rombel;
+use App\Models\rayon;
+use App\Models\rombel;
 
 class students extends Model
 {
@@ -23,5 +23,8 @@ class students extends Model
     }
     public function rombel(){
         return $this->belongsTo(rombel::class, 'rombel_id', 'id');
+    }
+    public function lates(){
+        return $this->hasMany(late::class, 'student_id', 'id');
     }
 }

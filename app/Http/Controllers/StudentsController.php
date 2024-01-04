@@ -6,6 +6,7 @@ use App\Models\students;
 use Illuminate\Http\Request;
 use App\Models\rayon;
 use App\Models\rombel;
+use Illuminate\Support\Facades\Auth;
 
 class StudentsController extends Controller
 {
@@ -14,7 +15,8 @@ class StudentsController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        if (Auth::user()->role == "admin") {
+            $search = $request->input('search');
 
         if ($search) {
             $students = students::where('name', 'LIKE', '%' . $search . '%')->orderBy('name', 'ASC')->simplePaginate(5);
@@ -24,6 +26,27 @@ class StudentsController extends Controller
         $rayons = rayon::all();
         $rombels = rombel::all();
         return view('dashboard.siswa.index', compact('rayons', 'rombels', 'students'));
+        }else{
+
+        $userIdLogin = Auth::id();
+        $rayonIdLogin = rayon::where('user_id', $userIdLogin)->value('id');
+
+        // Mendapatkan nilai perPage dari formulir atau menggunakan nilai default (5)
+        $perPage = $request->input('perPage', 5);
+        $search = $request->input('search');
+
+        $students = students::with('rayon', 'rombel')
+            ->where('rayon_id', $rayonIdLogin)
+            ->when($search, function ($query) use ($search) {
+                $query->where('nis', 'LIKE', '%' . $search . '%')
+                    ->orWhere('name', 'LIKE', '%' . $search . '%');
+            })
+            ->orderBy('created_at', 'ASC')
+            ->paginate($perPage);
+
+        return view('dashboard.siswa.index', compact('students', 'search'));
+
+        }
     }
 
     /**

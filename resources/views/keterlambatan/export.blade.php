@@ -49,7 +49,8 @@ $ps = DB::table('users')->where('id', $rayon->user_id)->first();
                 <td style="width: 50%; padding: 10px;">
                     <div class="card border-0">
                         <div class="signature">
-                            <h6 class="text-center mt-5">Ortu Peserta Didik</h6>
+                            <h6 class="text-center mt-5">Bogor, {{ date('d-F-Y') }}</h6>
+                            <h6 class="text-center">Ortu Peserta Didik</h6>
                             <div class="signature-box"></div>
                             <h6 class="text-center mt-5">(....................)</h6>
                         </div>

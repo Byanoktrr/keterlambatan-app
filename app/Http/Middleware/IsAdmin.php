@@ -19,7 +19,7 @@ class IsAdmin
         if(Auth::user()->role == "admin"){
             return $next($request);
         }else{
-            return redirect('/dashboard')->with("failed", "maaf halaman hanya bisa di akses oleh admin");
+            return redirect('/error404');
         }
     }
 }
