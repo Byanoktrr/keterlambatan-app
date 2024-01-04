@@ -27,9 +27,14 @@ Route::middleware('IsGuest')->group(function(){
 });
 
 Route::middleware('IsLogin')->group(function(){
-    Route::get('/dashboard', function () {  
-    return view('index');
-    })->name('index');
+
+    Route::get('/error404', function(){
+        return view('error404');
+    });
+    // Route::get('/dashboard', function () {  
+    // return view('index');
+    // })->name('index');
+    Route::get('/dashboard', [UserController::class, 'indexSiswa'])->name('index');
 
     Route::middleware('IsAdmin')->group(function(){
         Route::prefix('user')->name('user.')->group(function(){
@@ -40,43 +45,58 @@ Route::middleware('IsLogin')->group(function(){
             Route::patch('/update/{id}', [UserController::class, 'update'])->name('update');
             Route::delete('/delete/{id}', [UserController::class, 'destroy'])->name('delete');
         });
+
+        Route::prefix('rayon')->name('rayon.')->group(function(){
+            Route::get('/', [RayonController::class, 'index'])->name('index');
+            Route::get('/create', [RayonController::class, 'create'])->name('create');
+            Route::post('/store', [RayonController::class, 'store'])->name('store');
+            Route::get('/edit/{id}', [RayonController::class, 'edit'])->name('edit');
+            Route::patch('/update/{id}', [RayonController::class, 'update'])->name('update');
+        });
+    
+        Route::prefix('rombel')->name('rombel.')->group(function(){
+            Route::get('/',[RombelController::class, 'index'])->name('index');
+            Route::get('/create', [RombelController::class, 'create'])->name('create');
+            Route::post('/store', [RombelController::class, 'store'])->name('store');
+            Route::get('/edit/{id}', [RombelController::class, 'edit'])->name('edit');
+            Route::patch('update/{id}', [RombelController::class, 'update'])->name('update');
+            Route::delete('/delete/{id}', [RombelController::class, 'destroy'])->name('delete');
+        });
+    
+        Route::prefix('student')->name('student.')->group(function(){
+            Route::get('/', [StudentsController::class, 'index'])->name('index');
+            Route::get('/create', [StudentsController::class, 'create'])->name('create');
+            Route::post('/store', [StudentsController::class, 'store'])->name('store');
+            Route::get('/edit/{id}', [StudentsController::class, 'edit'])->name('edit');
+            Route::patch('/update/{id}', [StudentsController::class, 'update'])->name('update');
+        });
+    
+        Route::prefix('keterlambatan')->name('keterlambatan.')->group(function(){
+            Route::get('/', [LateController::class, 'index'])->name('index');
+            Route::get('/create', [LateController::class, 'create'])->name('create');
+            Route::post('/store', [LateController::class, 'store'])->name('store');
+            Route::get('/edit/{id}', [LateController::class, 'edit'])->name('edit');
+            Route::patch('/update/{id}', [LateController::class, 'update'])->name('update');
+            Route::delete('/delete/{id}', [LateController::class, 'destroy'])->name('delete');
+            Route::get('/show/{id}', [LateController::class, 'show'])->name('show');
+            Route::get('/print/{student_id}', [LateController::class, 'print'])->name('print');
+            Route::get('/export-excel', [LateController::class, 'exportExcel'])->name('export-excel');
+        });
     });
 
-    Route::prefix('rayon')->name('rayon.')->group(function(){
-        Route::get('/', [RayonController::class, 'index'])->name('index');
-        Route::get('/create', [RayonController::class, 'create'])->name('create');
-        Route::post('/store', [RayonController::class, 'store'])->name('store');
-        Route::get('/edit/{id}', [RayonController::class, 'edit'])->name('edit');
-        Route::patch('/update/{id}', [RayonController::class, 'update'])->name('update');
-    });
+    Route::middleware('IsPembimbing')->group(function(){
+        Route::prefix('studentPs')->name('student.')->group(function(){
+            Route::get('/', [StudentsController::class, 'index'])->name('indexPs');
+            Route::get('/show/{id}', [LateController::class, 'show'])->name('showPs');
+        });
 
-    Route::prefix('rombel')->name('rombel.')->group(function(){
-        Route::get('/',[RombelController::class, 'index'])->name('index');
-        Route::get('/create', [RombelController::class, 'create'])->name('create');
-        Route::post('/store', [RombelController::class, 'store'])->name('store');
-        Route::get('/edit/{id}', [RombelController::class, 'edit'])->name('edit');
-        Route::patch('update/{id}', [RombelController::class, 'update'])->name('update');
-        Route::delete('/delete/{id}', [RombelController::class, 'destroy'])->name('delete');
+        Route::prefix('keterlambatanPs')->name('keterlambatan.')->group(function(){
+            Route::get('/', [LateController::class, 'index'])->name('indexPs');
+            Route::get('/show/{id}', [LateController::class, 'show'])->name('showPs');
+            Route::get('/print/{student_id}', [LateController::class, 'print'])->name('printPs');
+            Route::get('/export-excelPs', [LateController::class, 'exportExcel'])->name('export-excelPs');
+        });
     });
-
-    Route::prefix('student')->name('student.')->group(function(){
-        Route::get('/', [StudentsController::class, 'index'])->name('index');
-        Route::get('/create', [StudentsController::class, 'create'])->name('create');
-        Route::post('/store', [StudentsController::class, 'store'])->name('store');
-        Route::get('/edit/{id}', [StudentsController::class, 'edit'])->name('edit');
-        Route::patch('/update/{id}', [StudentsController::class, 'update'])->name('update');
-    });
-
-    Route::prefix('keterlambatan')->name('keterlambatan.')->group(function(){
-        Route::get('/', [LateController::class, 'index'])->name('index');
-        Route::get('/create', [LateController::class, 'create'])->name('create');
-        Route::post('/store', [LateController::class, 'store'])->name('store');
-        Route::get('/edit/{id}', [LateController::class, 'edit'])->name('edit');
-        Route::patch('/update/{id}', [LateController::class, 'update'])->name('update');
-        Route::delete('/delete/{id}', [LateController::class, 'delete'])->name('delete');
-        Route::get('/show/{id}', [LateController::class, 'show'])->name('show');
-        Route::get('/print/{student_id}', [LateController::class, 'print'])->name('print');
-    });
-
+    
     Route::get('logout', [UserController::class, 'logout'])->name('logout');
 });

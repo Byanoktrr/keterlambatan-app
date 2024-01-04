@@ -5,21 +5,46 @@ namespace App\Http\Controllers;
 use App\Models\late;
 use Illuminate\Http\Request;
 use App\Models\students;
+use App\Models\Rayon;
+use Illuminate\Support\Facades\Auth;
 use PDF;
+use Excel;
+use App\Exports\PrintLate;
+use App\Exports\PrintLatePs;
 class LateController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {   
-        // $students = students::all();
-        $lates = late::with('students')->orderBy('student_id')->get();
-        $rekap = late::selectRaw('student_id, count(*) as total')
-                ->groupBy('student_id')
-                ->get();
-        return view('keterlambatan.index', compact('lates' , 'rekap'));
+    public function index(Request $request)
+{   
+    $search = $request->input('search');
+    if(Auth::user()->role == "admin") {
+        $lates = late::with('students')
+        ->when($search, function ($query) use ($search) {
+            $query->whereHas('students', function ($subquery) use ($search) {
+                $subquery->where('name', 'like', '%' . $search . '%');
+            });
+        })
+        ->orderBy('student_id')
+        ->paginate(10);
+
+    $rekap = late::selectRaw('student_id, count(*) as total')
+        ->groupBy('student_id')
+        ->get();
+
+    return view('keterlambatan.index', compact('lates', 'rekap'));
+    } else {
+        $ps = Rayon::select('id')->where('user_id', Auth::user()->id)->get();
+        $students = students::wherein('rayon_id', $ps)->get();
+
+        foreach($students as $item) {
+            $studentlate = late::where('student_id', $item['id'])->get();
+            $studentgroup = late::select('student_id')->where('student_id', $item['id'])->groupBy('student_id')->get();
+            return view('keterlambatan.index', compact('students', 'studentlate', 'studentgroup'));
+        }
     }
+}
 
     public function students(){
         return $this->belongsTo( students::class, 'student_id', 'id');
@@ -111,12 +136,9 @@ class LateController extends Controller
      */
     public function destroy(late $late, $id)
     {
-        $user = late::find($id);
+        late::where('id', $id)->delete();
 
-        $user->delete();
-
-
-        return redirect()->back()->with('deleted', 'Berhasil menghapus obat!');
+        return redirect()->back()->with('deleted', 'Berhasil menghapus data!');
     }
     public function print($id)
     {
@@ -128,5 +150,16 @@ class LateController extends Controller
                 ->get();
         $pdf = PDF::loadView('keterlambatan.export', compact('late', 'rekap', 'student'));
         return $pdf->download($student->name . '_surat_pernyataan.pdf');
+    }
+
+    public function exportExcel(){
+        $file_name = 'Data_Siswa' . '.xls';
+        if(Auth::user()->role == "Admin") {
+            return Excel::download(new PrintLate, $file_name);
+        } else {
+            $ps = Rayon::select('id')->where('user_id', Auth::user()->id);
+            return Excel::download(new PrintLatePs($ps), $file_name);
+        }
+        
     }
 }

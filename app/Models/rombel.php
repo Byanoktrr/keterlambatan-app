@@ -10,4 +10,9 @@ class rombel extends Model
     use HasFactory;
 
     protected $fillable = ['rombles'];
+
+    public function students()
+    {
+        return $this->hasOne(students::class);
+    }
 }
